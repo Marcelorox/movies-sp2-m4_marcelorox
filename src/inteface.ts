@@ -1,4 +1,4 @@
-interface movies {
+interface Movies {
   id: number;
   name: string;
   category: string;
