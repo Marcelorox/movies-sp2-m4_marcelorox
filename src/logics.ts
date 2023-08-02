@@ -52,10 +52,6 @@ const getMovieById = async (req: Request, res: Response): Promise<Response> => {
 
     const queryResult: MoviesResulte = await client.query(queryConfig);
 
-    if (queryResult.rows.length === 0) {
-      return res.status(404).json({ message: "Movie not found!" });
-    }
-
     const movie: Movies = queryResult.rows[0];
     return res.status(200).json(movie);
   } catch (error) {
@@ -66,15 +62,6 @@ const getMovieById = async (req: Request, res: Response): Promise<Response> => {
 
 const insertQuery = async (req: Request, res: Response): Promise<Response> => {
   const payload: MoviesCreate = req.body;
-
-  const querySearch = await client.query(
-    "SELECT * FROM movies WHERE name = $1;",
-    [payload.name]
-  );
-
-  if (querySearch.rowCount) {
-    return res.status(409).json({ message: "name already registred!" });
-  }
 
   const queryString: string = format(
     `
@@ -96,24 +83,6 @@ const patchQuery = async (req: Request, res: Response): Promise<Response> => {
   const movieId = req.params.id;
   const payload: Partial<Movies> = req.body;
 
-  const querySearch = await client.query(
-    "SELECT * FROM movies WHERE id = $1;",
-    [movieId]
-  );
-
-  if (!querySearch.rowCount) {
-    return res.status(404).json({ message: "Movie not found!" });
-  }
-
-  if (payload.name) {
-    const queryName = await client.query(
-      "SELECT * FROM movies WHERE name = $1;",
-      [payload.name]
-    );
-    if (queryName.rowCount) {
-      return res.status(409).json({ message: "name already registred!" });
-    }
-  }
   try {
     const queryString: string = format(
       `
@@ -158,13 +127,7 @@ const deleteQuery = async (req: Request, res: Response): Promise<Response> => {
 
     const queryResult: MoviesResulte = await client.query(queryConfig);
 
-    if (queryResult.rows.length === 0) {
-      return res.status(404).json({ message: "Movie not found!" });
-    }
-
-    const deletedMovie = queryResult.rows[0];
-
-    return res.status(204).json(deletedMovie);
+    return res.status(204).json();
   } catch (error) {
     console.error("Error deleting data:", error);
     return res.status(500).json({ message: "Internal server error" });
