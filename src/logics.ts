@@ -71,9 +71,9 @@ const insertQuery = async (req: Request, res: Response): Promise<Response> => {
     "SELECT * FROM movies WHERE name = $1;",
     [payload.name]
   );
-  console.log(querySearch);
+
   if (querySearch.rowCount) {
-    return res.status(409).json({ message: "ola" });
+    return res.status(409).json({ message: "name already registred!" });
   }
 
   const queryString: string = format(
@@ -94,8 +94,26 @@ const insertQuery = async (req: Request, res: Response): Promise<Response> => {
 
 const patchQuery = async (req: Request, res: Response): Promise<Response> => {
   const movieId = req.params.id;
-  const payload: Partial<Movies> = req.body; // Usamos Partial<Movies> para permitir que somente um subconjunto das colunas seja atualizado.
+  const payload: Partial<Movies> = req.body;
 
+  const querySearch = await client.query(
+    "SELECT * FROM movies WHERE id = $1;",
+    [movieId]
+  );
+
+  if (!querySearch.rowCount) {
+    return res.status(404).json({ message: "Movie not found!" });
+  }
+
+  if (payload.name) {
+    const queryName = await client.query(
+      "SELECT * FROM movies WHERE name = $1;",
+      [payload.name]
+    );
+    if (queryName.rowCount) {
+      return res.status(409).json({ message: "name already registred!" });
+    }
+  }
   try {
     const queryString: string = format(
       `
